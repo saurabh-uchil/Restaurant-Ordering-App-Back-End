@@ -4,4 +4,6 @@ export enum Course {
     MAIN_COURSE = 'Mains',
     DESSERT = 'Dessert',
     KIDS = 'Kids',
+    STEAKS = 'Steaks',
+    SIDES = 'Sides'
 }
