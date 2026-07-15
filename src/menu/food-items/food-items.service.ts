@@ -120,4 +120,56 @@ export class FoodItemsService {
             throw new BadRequestException(error.message);
         }
     }
+
+    async getFoodItem(id: string): Promise<FoodItem> {
+        try {
+            const foodItem = await this.foodItemModel.findById(id)
+                .populate('addons')
+                .populate('dietaryAlternatives')
+                .populate({ path: 'options', populate: { path: 'choices' } })
+                .exec();
+            if (!foodItem) {
+                throw new BadRequestException('Food item not found');
+            }
+            return foodItem;
+        } catch (error) {
+            throw new BadRequestException(error.message);
+        }
+    }
+
+    async updateFoodItem(id: string, data: FoodItemDto): Promise<FoodItem> {
+        try {
+            const addonIds = await this.addonService.getAddonIds(data.addons || []);
+            const dietaryAlternativeIds = await this.dietaryAlternativesService.getDietaryAlternativeIds(data.dietaryAlternatives || []);
+            const optionGroupIds = await this.optionGroupService.getOptionGroupIds(data.options || []);
+
+            const updatedFoodItem = await this.foodItemModel.findByIdAndUpdate(
+                id,
+                {
+                    name: data.name,
+                    description: data.description,
+                    price: data.price,
+                    menuType: data.menuType,
+                    imageUrl: data.imageUrl,
+                    course: data.course,
+                    addons: addonIds,
+                    dietaryAlternatives: dietaryAlternativeIds,
+                    options: optionGroupIds,
+                    removableIngredients: data.removableIngredients,
+                },
+                { new: true }
+            ).populate('addons')
+                .populate('dietaryAlternatives')
+                .populate({ path: 'options', populate: { path: 'choices' } })
+                .exec();
+
+            if (!updatedFoodItem) {
+                throw new BadRequestException('Food item not found');
+            }
+
+            return updatedFoodItem;
+        } catch (error) {
+            throw new BadRequestException(error.message);
+        }
+    }
 }

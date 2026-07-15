@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable prettier/prettier */
-import { Body, Controller, Get, Post, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Put, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { MenuService } from './menu.service';
 import { FoodItemsService } from './food-items/food-items.service';
 import { FoodItemDto } from './food-items/dto/FoodItem.dto';
@@ -42,6 +42,22 @@ export class MenuController {
         }
     }
 
+    @Put('update-food-item/:id')
+    async updateFoodItem(@Param('id') id: string, @Body() data: FoodItemDto) {
+        try {
+            const result = await this.foodItemsService.updateFoodItem(id, data);
+            return { success: true, message: 'Food item updated successfully', data: result };
+        } catch (err) {
+            console.error('Error updating food item:', err);
+            return { success: false, message: 'Error updating food item' };
+        }
+    }
+
+    @Get('food-item/:id')
+    async getFoodItem(@Param('id') id: string) {
+        return await this.foodItemsService.getFoodItem(id);
+    }
+
     @Get('dietary-alternatives')
     async getAllDietaryAlternatives() {
          return this.foodItemsService.getAllDietaryAlternatives();
@@ -56,4 +72,6 @@ export class MenuController {
     async getOptions() {
         return this.foodItemsService.getOptions();
     }
+
+    
 }   
