@@ -172,4 +172,16 @@ export class FoodItemsService {
             throw new BadRequestException(error.message);
         }
     }
+
+    async deleteFoodItem(id: string): Promise<FoodItem> {
+        try {
+            const deletedFoodItem = await this.foodItemModel.findByIdAndDelete(id);
+            if (!deletedFoodItem) {
+                throw new BadRequestException('Food item not found');
+            }
+            return deletedFoodItem;
+        } catch (error) {
+            throw new BadRequestException(error.message);
+        }
+    }
 }

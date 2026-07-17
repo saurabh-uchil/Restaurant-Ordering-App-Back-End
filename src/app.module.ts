@@ -10,9 +10,9 @@ import { DietaryAlternativesModule } from './menu/dietary-alternatives/dietary-a
 import { OptionGroupModule } from './menu/option-group/option-group.module';
 import { FoodItemsModule } from './menu/food-items/food-items.module';
 import { ImageUploaderModule } from './menu/image-uploader/image-uploader.module';
-import { MenuItemModule } from './menu-item/menu-item.module';
-
-
+import { UserModule } from './user/user.module';
+import { AuthModule } from './auth/auth.module';
+import { RestaurantModule } from './restaurant/restaurant.module';
 
 @Module({
   imports: [MenuModule, ConfigModule.forRoot({ isGlobal: true }),
@@ -22,8 +22,9 @@ import { MenuItemModule } from './menu-item/menu-item.module';
     OptionGroupModule,
     FoodItemsModule,
     ImageUploaderModule,
-    MenuItemModule,
-    
+    UserModule,
+    AuthModule,
+    RestaurantModule,
   ],
   controllers: [AppController],
   providers: [AppService],

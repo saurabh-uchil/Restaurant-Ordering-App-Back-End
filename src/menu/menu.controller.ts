@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable prettier/prettier */
-import { Body, Controller, Get, Param, Post, Put, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { MenuService } from './menu.service';
 import { FoodItemsService } from './food-items/food-items.service';
 import { FoodItemDto } from './food-items/dto/FoodItem.dto';
@@ -71,6 +71,17 @@ export class MenuController {
     @Get('options')
     async getOptions() {
         return this.foodItemsService.getOptions();
+    }
+
+    @Delete('delete-food-item/:id')
+    async deleteFoodItem(@Param('id') id: string) {
+        try {
+            const result = await this.foodItemsService.deleteFoodItem(id);
+            return { success: true, message: 'Food item deleted successfully', data: result };
+        } catch (err) {
+            console.error('Error deleting food item:', err);
+            return { success: false, message: 'Error deleting food item' };
+        }
     }
 
     
