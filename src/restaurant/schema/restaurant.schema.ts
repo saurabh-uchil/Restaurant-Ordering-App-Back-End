@@ -8,6 +8,9 @@ export class Restaurant extends Document{
     name!: string;
 
     @Prop()
+    slug!: string;
+
+    @Prop()
     address!: string;
 
     @Prop()

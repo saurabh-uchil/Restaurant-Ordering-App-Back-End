@@ -21,8 +21,8 @@ export class User extends Document {
     @Prop()
     lastLogin!: Date;
 
-    @Prop({type: [{type: Types.ObjectId, ref: Restaurant.name}]})
-    restaurantId!: Types.ObjectId;
+    @Prop({type: Types.ObjectId, ref: Restaurant.name})
+    restaurant!: Types.ObjectId;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

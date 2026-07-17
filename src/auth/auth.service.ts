@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable prettier/prettier */
-import { ConflictException, Injectable } from '@nestjs/common';
+import { ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { RegisterUserDto } from './dto/register.dto';
 import { InjectConnection, InjectModel } from '@nestjs/mongoose';
 import { User } from '../user/schema/user.schema';
@@ -11,6 +11,7 @@ import { Restaurant } from '../restaurant/schema/restaurant.schema';
 import { UserRole } from '../user/enums/user.role.enum';
 import * as bcrypt from 'bcrypt';
 import slugify from 'slugify';
+import { LoginUserDTO } from './dto/login.dto';
 
 @Injectable()
 export class AuthService {
@@ -47,7 +48,8 @@ export class AuthService {
                 session.startTransaction();
 
                 const [restaurant] = await this.restaurantModel.create([{
-                    name: slugify(body.restaurantName, {lower:true, trim:true}), 
+                    name: body.restaurantName,
+                    slug: slugify(body.restaurantName, {lower:true, trim:true}), 
                     description: body.restaurantDescription
                 }], {session});
                 
@@ -56,12 +58,12 @@ export class AuthService {
                     email: slugify(body.email, {trim:true, lower:true}),
                     hashedPassword, 
                     role: UserRole.OWNER, 
-                    restaurantId: restaurant._id,
+                    restaurant: restaurant._id,
                 }],{session});
 
                 await session.commitTransaction();
 
-                return { message: 'User registered successfully', userId: user._id, restaurantId: restaurant._id };
+                return { message: 'User registered successfully', userId: user._id, restaurant: restaurant._id };
 
             }
             catch(error){
@@ -71,5 +73,23 @@ export class AuthService {
             finally{
                 await session.endSession();
             }    
+    }
+
+    async login (body: LoginUserDTO){
+        const user = await this.userModel.findOne({email:body.email}).select('+hashedPassword').populate('restaurant');
+
+        if(!user){
+            throw new UnauthorizedException('Email not found');
+        }
+        
+        const isValidPassword = await bcrypt.compare(body.password, user.hashedPassword);
+
+        if(!isValidPassword){
+            throw new UnauthorizedException('Invalid Password');
+        }
+
+        await this.userModel.updateOne({_id:user._id},{$set:{lastLogin: new Date()}});
+
+        return {message:"Login Successful", token:"Your Jwt accessToken", user}
     }
 }

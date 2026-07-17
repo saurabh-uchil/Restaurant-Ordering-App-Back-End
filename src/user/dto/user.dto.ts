@@ -19,6 +19,6 @@ export class CreateUserDto {
     @IsOptional()
     lastLogin?: Date;
 
-    @IsMongoId({ each: true })
-    restaurantId?: string[];
+    @IsMongoId()
+    restaurant?: string;
 }

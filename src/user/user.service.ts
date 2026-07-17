@@ -11,7 +11,7 @@ export class UserService {
         @InjectModel(Restaurant.name) private readonly restaurantModel: Model<Restaurant> ){}
 
      async getUsers(){
-        const users = await this.userModel.find().populate('restaurantId').exec();
+        const users = await this.userModel.find().populate('restaurant').exec();
         return users;
      }   
 }
