@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable prettier/prettier */
@@ -12,6 +11,7 @@ import { UserRole } from '../user/enums/user.role.enum';
 import * as bcrypt from 'bcrypt';
 import slugify from 'slugify';
 import { LoginUserDTO } from './dto/login.dto';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class AuthService {
@@ -23,7 +23,9 @@ export class AuthService {
         private readonly restaurantModel: Model<Restaurant>,
 
         @InjectConnection()
-        private readonly connection: Connection
+        private readonly connection: Connection, 
+
+        private readonly jwtService: JwtService
     ) {}
 
    
@@ -88,8 +90,12 @@ export class AuthService {
             throw new UnauthorizedException('Invalid Password');
         }
 
+        const payload = {sub: user._id, role: user.role, restaurant: user.restaurant._id}
+        
+        const accessToken = await this.jwtService.signAsync(payload);
+
         await this.userModel.updateOne({_id:user._id},{$set:{lastLogin: new Date()}});
 
-        return {message:"Login Successful", token:"Your Jwt accessToken", user}
+        return {message:"Login Successful", accessToken, user}
     }
 }

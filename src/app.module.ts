@@ -13,6 +13,7 @@ import { ImageUploaderModule } from './menu/image-uploader/image-uploader.module
 import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
 import { RestaurantModule } from './restaurant/restaurant.module';
+import { JwtModule } from '@nestjs/jwt';
 
 @Module({
   imports: [MenuModule, ConfigModule.forRoot({ isGlobal: true }),
@@ -25,6 +26,13 @@ import { RestaurantModule } from './restaurant/restaurant.module';
     UserModule,
     AuthModule,
     RestaurantModule,
+    JwtModule.register({
+      global: true,
+      secret: process.env.JWT_SECRET,
+      signOptions:{
+        expiresIn:'1h'
+      }
+    })
   ],
   controllers: [AppController],
   providers: [AppService],
