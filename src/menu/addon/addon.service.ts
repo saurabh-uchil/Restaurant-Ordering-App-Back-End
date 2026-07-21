@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable prettier/prettier */
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
@@ -48,4 +49,14 @@ export class AddonService {
         const result = await this.addonModel.exists({ _id: id });
         return result;
     }
+
+    getAllAddons(): Promise<Addon[]> {
+        try {
+            return this.addonModel.find().exec();
+        } catch (error) {
+            throw new BadRequestException(error.message);
+        }
+    }
+
+    
 }

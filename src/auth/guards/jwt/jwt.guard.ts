@@ -1,8 +1,10 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable prettier/prettier */
 import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
-import { Request } from 'express';
 import { JwtService } from '@nestjs/jwt';
+import { AuthRequest, JWTPayload } from '../../types/authRequestTypes';
+
 
 @Injectable()
 export class JwtGuard implements CanActivate {
@@ -10,7 +12,7 @@ export class JwtGuard implements CanActivate {
   async canActivate(
     context: ExecutionContext,
   ): Promise<boolean> {
-    const request = context.switchToHttp().getRequest<Request>();
+    const request = context.switchToHttp().getRequest<AuthRequest>();
     if(!request.headers.authorization){
       throw new UnauthorizedException("Missing Access Token");
     }
@@ -22,7 +24,8 @@ export class JwtGuard implements CanActivate {
     }
 
     try{
-      await this.jwtService.verifyAsync(token);
+      const payload = await this.jwtService.verifyAsync<JWTPayload>(token);
+      request.payload = payload;
       return true;
     }catch(error){
       throw new UnauthorizedException('Invalid or expired token');

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable prettier/prettier */
 
 
@@ -44,5 +45,13 @@ export class DietaryAlternativesService {
     async checkIfIdExists(id: string) {
         const result = await this.dietaryAlternativeModel.exists({ _id: id });
         return result;
+    }
+
+    async getAllDietaryAlternatives(): Promise<DietaryAlternative[]> {
+        try {
+            return this.dietaryAlternativeModel.find().exec();
+        } catch (error) {
+            throw new BadRequestException(error.message);
+        }
     }
 }

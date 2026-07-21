@@ -74,6 +74,14 @@ export class OptionGroupService {
 async checkIfIdExists(id: string) {
         const result = await this.optionGroupModel.exists({ _id: id });
         return result;
+}
+
+getOptions(): Promise<OptionGroup[]> { 
+        try {
+            return this.optionGroupModel.find().populate('choices').exec();
+        } catch (error) {
+            throw new BadRequestException(error.message);
+        }
     }
 
 }

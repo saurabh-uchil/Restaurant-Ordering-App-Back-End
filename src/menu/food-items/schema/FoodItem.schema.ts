@@ -3,46 +3,50 @@ import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import { Document, Types } from "mongoose";
 import { MenuType } from "../../enums/menuType.enum";
 import { Course } from "../../enums/course.enum";
-import { OptionGroup } from "src/menu/option-group/schema/OptionGroup.schema";
-import { Addon } from "src/menu/addon/schema/Addons.schema";
-import { DietaryAlternative } from "src/menu/dietary-alternatives/schema/DietaryAlternatives.schema";
+import { OptionGroup } from "../../option-group/schema/OptionGroup.schema";
+import { Addon } from "../../addon/schema/Addons.schema";
+import { DietaryAlternative } from "../../dietary-alternatives/schema/DietaryAlternatives.schema";
+import { Restaurant } from "../../../restaurant/schema/restaurant.schema";
 
 
 @Schema({timestamps: true})
 export class FoodItem extends Document {
 
-    @Prop({required: true})
-    name: string;
+    @Prop({type: Types.ObjectId, ref: Restaurant.name, required: true})
+    restaurant_Id!: Types.ObjectId;
 
     @Prop({required: true})
-    description: string;
+    name!: string;
 
     @Prop({required: true})
-    price: number;
+    description!: string;
+
+    @Prop({required: true})
+    price!: number;
 
     @Prop({enum: MenuType, type: [String], required: true})
-    menuType: MenuType[];
+    menuType!: MenuType[];
 
     @Prop()
-    imageUrl: string;
+    imageUrl!: string;
 
     @Prop({enum: Course, type: String, required: true})
-    course: Course;
+    course!: Course;
 
     @Prop({type: [{type: Types.ObjectId, ref: OptionGroup.name}], default: []})
-    options: Types.ObjectId[];
+    options!: Types.ObjectId[];
 
     @Prop({type:[{type: Types.ObjectId, ref: Addon.name}], default: []})
-    addons: Types.ObjectId[];
+    addons!: Types.ObjectId[];
 
     @Prop({default: []})
-    removableIngredients: string[];
+    removableIngredients!: string[];
 
     @Prop({type: [{type: Types.ObjectId, ref: DietaryAlternative.name}], default: []})
-    dietaryAlternatives: Types.ObjectId[];
+    dietaryAlternatives!: Types.ObjectId[];
 
     @Prop({required: true})
-    availability: string[];
+    availability!: string[];
 
 }
 
