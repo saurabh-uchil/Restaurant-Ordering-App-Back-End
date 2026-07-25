@@ -11,7 +11,8 @@ import { UserRole } from '../user/enums/user.role.enum';
 import * as bcrypt from 'bcrypt';
 import slugify from 'slugify';
 import { LoginUserDTO } from './dto/login.dto';
-import { JwtService } from '@nestjs/jwt';
+import { JwtService, JwtSignOptions } from '@nestjs/jwt';
+import { JWTPayload } from './types/authRequestTypes';
 
 @Injectable()
 export class AuthService {
@@ -77,8 +78,17 @@ export class AuthService {
             }    
     }
 
+    async generateToken(payload, expiry){
+        const token = await this.jwtService.signAsync(payload, {
+            secret: process.env.JWT_SECRET,
+            expiresIn: expiry
+        });
+        return token;
+    }
+
     async login (body: LoginUserDTO){
-        const user = await this.userModel.findOne({email:body.email}).select('+hashedPassword').populate('restaurant');
+        //const user = await this.userModel.findOne({email:body.email}).select('+hashedPassword').populate('restaurant');
+        const user = await this.userModel.findOne({email:body.email}).select('+hashedPassword');
 
         if(!user){
             throw new UnauthorizedException('Email not found');
@@ -92,10 +102,14 @@ export class AuthService {
 
         const payload = {sub: user._id, role: user.role, restaurant: user.restaurant._id}
         
-        const accessToken = await this.jwtService.signAsync(payload);
+        const accessToken = await this.generateToken(payload, "15m");
+       
+        //const refreshToken = await this.generateToken(payload, "2d");
 
         await this.userModel.updateOne({_id:user._id},{$set:{lastLogin: new Date()}});
 
-        return {message:"Login Successful", accessToken, user}
+        const {username, _id, role, restaurant} = user;
+
+        return {_id, message:"Login Successful", accessToken,  username, role, restaurant }
     }
 }
