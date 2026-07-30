@@ -16,7 +16,7 @@ export class RestaurantService {
     ){}
 
     async getMenu(restaurant_Id: string){
-        const menu = await this.foodItemModel.find({restaurant_Id});
+        const menu = await this.foodItemModel.find({restaurant_Id}).populate('dietaryAlternatives').exec();
         return menu;
     }
 
