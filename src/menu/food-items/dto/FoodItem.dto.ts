@@ -14,6 +14,10 @@ export class FoodItemDto {
 
     @IsNotEmpty()
     @IsString()
+    restaurant_Id!: string;
+
+    @IsNotEmpty()
+    @IsString()
     name: string;
 
     @IsNotEmpty()
