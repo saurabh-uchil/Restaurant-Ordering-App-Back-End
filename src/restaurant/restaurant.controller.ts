@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable prettier/prettier */
-import { Controller, Get, Param, UseGuards } from '@nestjs/common';
+import { BadRequestException, Controller, Get, Param, UseGuards } from '@nestjs/common';
 import { RestaurantService } from './restaurant.service';
 import { FoodItem } from '../menu/food-items/schema/FoodItem.schema';
 import { JwtGuard } from '../auth/guards/jwt/jwt.guard';
@@ -24,4 +24,11 @@ export class RestaurantController {
         const data = await this.restaurantService.getRestaurant(restaurantId);
         return data;
     }
+
+    @Get('/slug/:slug')
+    async getRestauranBySlug(@Param('slug') slug:string){
+        const data = await this.restaurantService.getRestaurantBySlug(slug);
+        return data;
+    }
+
 }

@@ -1,5 +1,5 @@
 /* eslint-disable prettier/prettier */
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { FoodItem } from '../menu/food-items/schema/FoodItem.schema';
 import { Model } from 'mongoose';
@@ -21,9 +21,15 @@ export class RestaurantService {
     }
 
     async getRestaurant(restaurant_Id:string){
-        console.log("request made");
-        console.log(restaurant_Id);
         const restaurant = await this.restaurantModel.findById({_id:restaurant_Id});
+        return restaurant;
+    }
+
+    async getRestaurantBySlug(slug: string){
+        const restaurant = await this.restaurantModel.findOne({slug});
+        if(!restaurant){
+            throw new NotFoundException(`Restaurant Not Found`);
+        }
         return restaurant;
     }
 }

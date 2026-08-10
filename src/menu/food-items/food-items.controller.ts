@@ -15,4 +15,9 @@ export class FoodItemsController {
     createFoodItemByRestaurant(@Body() foodItem: FoodItemDto, @CurrentUser('restaurant') restaurantId: string){
         return this.foodItemsService.addFoodItemToARestaurant(foodItem, restaurantId);
     }
+
+    @Post('addItem')
+    addItem(@Body() foodItem: FoodItemDto){
+        return this.foodItemsService.addItem(foodItem);
+    }
 }

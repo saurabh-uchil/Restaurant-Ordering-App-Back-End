@@ -177,4 +177,31 @@ export class FoodItemsService {
             throw new BadRequestException("Error Creating Food Item")
         }
     }
+
+    async addItem(data:FoodItemDto){
+        try{
+            const addonIds = await this.addonService.getAddonIds(data.addons || []);
+            const dietaryAlternativeIds = await this.dietaryAlternativesService.getDietaryAlternativeIds(data.dietaryAlternatives || []);
+            const optionGroupIds = await this.optionGroupService.getOptionGroupIds(data.options || []);
+
+
+            const foodItem = new this.foodItemModel({
+                restaurant_Id: data.restaurant_Id,
+                name: data.name,
+                description: data.description,
+                price: data.price,
+                menuType: data.menuType,
+                imageUrl: data.imageUrl,
+                course: data.course,
+                addons: addonIds,
+                dietaryAlternatives: dietaryAlternativeIds,
+                options: optionGroupIds,
+                removableIngredients: data.removableIngredients,
+            });
+
+            return foodItem.save();
+        }catch(error){
+            throw new BadRequestException("Error Creating Food Item")
+        }
+    }
 }
