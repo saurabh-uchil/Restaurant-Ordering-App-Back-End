@@ -32,4 +32,13 @@ export class RestaurantService {
         }
         return restaurant;
     }
+
+    async getMenuBySlug(slug: string){
+        const restaurant = await this.getRestaurantBySlug(slug);
+        const restaurantId = restaurant._id.toString();
+        console.log(restaurantId);
+        const menu = await this.getMenu(restaurantId)
+
+        return menu;
+    }
 }
