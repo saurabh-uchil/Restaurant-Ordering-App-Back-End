@@ -4,6 +4,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { FoodItem } from '../menu/food-items/schema/FoodItem.schema';
 import { Model } from 'mongoose';
 import { Restaurant } from './schema/restaurant.schema';
+import { Types } from "mongoose";
 
 @Injectable()
 export class RestaurantService {
@@ -16,7 +17,11 @@ export class RestaurantService {
     ){}
 
     async getMenu(restaurant_Id: string){
-        const menu = await this.foodItemModel.find({restaurant_Id}).populate('dietaryAlternatives').exec();
+        const restaurantObjectId = new Types.ObjectId(restaurant_Id);
+        const menu = await this.foodItemModel.find({restaurant_Id:restaurantObjectId}) 
+                .populate('addons')
+                .populate('dietaryAlternatives')
+                .populate({ path: 'options', populate: { path: 'choices' } });
         return menu;
     }
 
@@ -36,7 +41,7 @@ export class RestaurantService {
     async getMenuBySlug(slug: string){
         const restaurant = await this.getRestaurantBySlug(slug);
         const restaurantId = restaurant._id.toString();
-        console.log(restaurantId);
+       
         const menu = await this.getMenu(restaurantId)
 
         return menu;
