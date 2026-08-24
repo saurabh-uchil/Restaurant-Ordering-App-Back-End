@@ -8,9 +8,6 @@ export type CartItem = {
   name: string;
   itemId: string;
   cartItemId: string;
-  imageUrl: string;
-  basePrice: number;
-  extraCost?: number;
   specialInstructions?: string;
   quantity: number;
   addons: SelectedItem[];

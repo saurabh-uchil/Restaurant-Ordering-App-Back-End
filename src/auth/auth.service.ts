@@ -11,8 +11,7 @@ import { UserRole } from '../user/enums/user.role.enum';
 import * as bcrypt from 'bcrypt';
 import slugify from 'slugify';
 import { LoginUserDTO } from './dto/login.dto';
-import { JwtService, JwtSignOptions } from '@nestjs/jwt';
-import { JWTPayload } from './types/authRequestTypes';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class AuthService {

@@ -4,7 +4,7 @@ import { Document } from "mongoose";
 import { CartItem, OrderStatus, PaymentStatus } from "../types/order.type";
 
 @Schema({timestamps: true})
-class Order extends Document{
+export class Order extends Document{
     
     @Prop({required: true})
     table!: number;
