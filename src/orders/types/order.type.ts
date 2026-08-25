@@ -6,6 +6,7 @@ type SelectedItem = {
 
 export type CartItem = {
   name: string;
+  basePrice: number;
   itemId: string;
   cartItemId: string;
   specialInstructions?: string;
