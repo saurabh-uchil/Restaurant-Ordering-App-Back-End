@@ -1,5 +1,5 @@
 /* eslint-disable prettier/prettier */
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post } from '@nestjs/common';
 import { OrdersService } from './orders.service';
 import { OrderDTO } from './dto/order.dto';
 
@@ -11,5 +11,10 @@ export class OrdersController {
     @Post()
     createOrder(@Body() order: OrderDTO){
         return this.orderService.createOrder(order);
+    }
+
+    @Get('/:orderId')
+    getOrderById(@Param('orderId') orderId: string){
+        return this.orderService.getOrderById(orderId);
     }
 }

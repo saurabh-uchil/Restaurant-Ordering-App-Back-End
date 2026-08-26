@@ -103,15 +103,27 @@ export class OrdersService {
 
     const orderObject = await new this.orderModel(newOrder).save();
 
+    /* return {
+      message: "Order Created Successfully",
+      order:{
+        orderId: orderObject._id, 
+        orderNumber: orderObject.orderNumber, 
+        total: orderObject.total, 
+        subtotal: orderObject.subtotal, 
+        status: orderObject.status, 
+        paymentStatus: orderObject.paymentStatus, 
+        table: orderObject.table, 
+        items: orderObject.cart,
+      }
+    }; */
     return {
-      orderNumber: orderObject.orderNumber, 
-      total: orderObject.total, 
-      subtotal: orderObject.subtotal, 
-      status: orderObject.status, 
-      paymentStatus: orderObject.paymentStatus, 
-      table: orderObject.table, 
-      cart: orderObject.cart,
-      message: "Order Created Successfully"
-    };
+        message: "Order Created Successfully",
+        orderId: orderObject._id,
+    }
+  }
+
+  async getOrderById(orderId: string){
+    const data = await this.orderModel.findById(new Types.ObjectId(orderId));
+    return data;
   }
 }
