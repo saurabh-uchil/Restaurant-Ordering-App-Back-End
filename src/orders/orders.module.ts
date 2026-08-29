@@ -6,6 +6,7 @@ import { FoodItemsModule } from '../menu/food-items/food-items.module';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Order, OrderSchema } from './schema/orders.schema';
 import { OrderCounter, OrderCounterSchema } from './schema/orderCounter.schema';
+import { OrdersGateway } from './gateway/orders.gateway';
 
 @Module({
   imports: [MongooseModule.forFeature([
@@ -13,7 +14,7 @@ import { OrderCounter, OrderCounterSchema } from './schema/orderCounter.schema';
     {name:OrderCounter.name, schema: OrderCounterSchema}
   ]), 
     FoodItemsModule],
-  providers: [OrdersService],
+  providers: [OrdersService, OrdersGateway],
   controllers: [OrdersController],
 })
 export class OrdersModule {}
