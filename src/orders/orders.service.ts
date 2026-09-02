@@ -11,6 +11,7 @@ import { Order } from './schema/orders.schema';
 import { OrderCounter } from './schema/orderCounter.schema';
 import { OrderStatus, PaymentStatus } from './types/order.type';
 import { Types } from 'mongoose';
+import { OrdersGateway } from './gateway/orders.gateway';
 
 @Injectable()
 export class OrdersService {
@@ -19,6 +20,7 @@ export class OrdersService {
     @InjectModel(Order.name) private orderModel: Model<Order>,
     @InjectModel(OrderCounter.name)
     private orderCounterModel: Model<OrderCounter>,
+    private readonly ordersGateway: OrdersGateway
   ) {}
 
   async checkIfPricesAreValid(cart: CartItemDTO[]): Promise<boolean> {
@@ -102,20 +104,8 @@ export class OrdersService {
     };
 
     const orderObject = await new this.orderModel(newOrder).save();
-
-    /* return {
-      message: "Order Created Successfully",
-      order:{
-        orderId: orderObject._id, 
-        orderNumber: orderObject.orderNumber, 
-        total: orderObject.total, 
-        subtotal: orderObject.subtotal, 
-        status: orderObject.status, 
-        paymentStatus: orderObject.paymentStatus, 
-        table: orderObject.table, 
-        items: orderObject.cart,
-      }
-    }; */
+    this.ordersGateway.handleOrderUpdate(orderObject.orderNumber, orderObject.status);
+    
     return {
         message: "Order Created Successfully",
         orderId: orderObject._id,
