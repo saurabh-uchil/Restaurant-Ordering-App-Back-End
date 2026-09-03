@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-misused-promises */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable prettier/prettier */
-import { ConflictException, Injectable } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { OrderDTO } from './dto/order.dto';
 import { FoodItemsService } from '../menu/food-items/food-items.service';
 import { CartItemDTO } from './dto/cart.dto';
@@ -12,6 +12,7 @@ import { OrderCounter } from './schema/orderCounter.schema';
 import { OrderStatus, PaymentStatus } from './types/order.type';
 import { Types } from 'mongoose';
 import { OrdersGateway } from './gateway/orders.gateway';
+import { calculateSubtotal, calculateTotal } from './helpers/priceHelpler';
 
 @Injectable()
 export class OrdersService {
@@ -35,44 +36,18 @@ export class OrdersService {
     return true;
   }
 
-  calculateSubtotal = (cartItems: CartItemDTO[]) => {
-    let sum = 0;
-    for (const cart of cartItems) {
-      const addonsTotal =
-        cart?.addons &&
-        cart?.addons.reduce((sum, addon) => sum + addon.extraCost, 0);
-      const dietaryAlternativesTotal =
-        cart?.dietaryAlternatives &&
-        cart?.dietaryAlternatives.reduce((sum, da) => sum + da.extraCost, 0);
-      const optionsTotal =
-        cart?.options &&
-        Object.values(cart?.options).reduce(
-          (sum, option) => sum + option.extraCost,
-          0,
-        );
-      sum +=
-        addonsTotal + dietaryAlternativesTotal + optionsTotal + cart.basePrice;
-    }
-
-    return sum;
-  };
-
-  calculateTotal = (subtotal: number, serviceCharge: number, tax: number) => {
-    return (subtotal * serviceCharge) / 100 + (subtotal * tax) / 100 + subtotal;
-  };
-
   async createOrder(order: OrderDTO) {
-    const pricesAreValid = await this.checkIfPricesAreValid(order.cart);
+    const pricesAreValid = await this.checkIfPricesAreValid(order.items);
 
     if (!pricesAreValid) {
       throw new ConflictException('Prices are updated.. Pls try again');
     }
 
-    const subtotal = this.calculateSubtotal(order.cart);
-    const total = this.calculateTotal(subtotal, 5, 10);
+    const subtotal = calculateSubtotal(order.items);
+    const total = calculateTotal(subtotal, 5, 10);
     const paymentStatus: PaymentStatus = 'pending';
     const status: OrderStatus = 'received';
-    const { cart, table } = order;
+    const { items, table } = order;
 
     const restaurantId = new Types.ObjectId(order.restaurantId)
 
@@ -95,7 +70,7 @@ export class OrdersService {
     const newOrder = {
       restaurantId,
       table,
-      cart,
+      items,
       status,
       paymentStatus,
       total,
@@ -115,5 +90,30 @@ export class OrdersService {
   async getOrderById(orderId: string){
     const data = await this.orderModel.findById(new Types.ObjectId(orderId));
     return data;
+  }
+
+  async getOrdersByRestaurantId(restaurantId: string){
+    const data = await this.orderModel.find({restaurantId: new Types.ObjectId(restaurantId)});
+    return data;
+  }
+
+  async getActiveOrdersByRestaurantId(restaurantId: string){
+    const data = await this.orderModel.find({restaurantId: new Types.ObjectId(restaurantId), status: { $in: ["received", "preparing", "ready"] }});
+    return data;
+  }
+
+  async changeOrderStatus(orderId: string, newStatus: OrderStatus){
+    const order = await this.orderModel.findById(new Types.ObjectId(orderId));
+    if (!order) {
+      throw new NotFoundException('Order not found');
+    }
+    order.status = newStatus;
+    await order.save();
+    //this.ordersGateway.handleOrderUpdate(order.orderNumber, newStatus);
+    return {
+        message: "Order Status Updated Successfully",
+        orderId: order._id,
+        newStatus: order.status
+      }
   }
 }

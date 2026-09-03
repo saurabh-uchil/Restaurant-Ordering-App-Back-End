@@ -22,7 +22,7 @@ export class Order extends Document {
   orderNumber!: number;
 
   @Prop({ required: true })
-  cart!: CartItem[];
+  items!: CartItem[];
 
   @Prop({ required: true })
   subtotal!: number;
