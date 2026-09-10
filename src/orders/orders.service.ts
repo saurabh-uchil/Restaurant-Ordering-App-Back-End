@@ -109,7 +109,7 @@ export class OrdersService {
     }
     order.status = newStatus;
     await order.save();
-    //this.ordersGateway.handleOrderUpdate(order.orderNumber, newStatus);
+    this.ordersGateway.handleCustomerOrderUpdate(order.orderNumber, newStatus);
     return {
         message: "Order Status Updated Successfully",
         orderId: order._id,

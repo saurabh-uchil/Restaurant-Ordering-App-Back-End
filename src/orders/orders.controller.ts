@@ -32,7 +32,6 @@ export class OrdersController {
 
     @Patch('/:orderId/status')
     changeOrderStatus(@Param('orderId') orderId: string, @Body('newStatus') newStatus: OrderStatus){ 
-        console.log(`Changing status of order ${orderId} to ${newStatus}`);
         return this.orderService.changeOrderStatus(orderId, newStatus);
     }
 }
