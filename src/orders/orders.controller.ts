@@ -34,4 +34,9 @@ export class OrdersController {
     changeOrderStatus(@Param('orderId') orderId: string, @Body('newStatus') newStatus: OrderStatus){ 
         return this.orderService.changeOrderStatus(orderId, newStatus);
     }
+
+    @Get('/restaurant/:restaurantId/completed')
+    getCompletedOrdersByRestaurantId(@Param('restaurantId') restaurantId: string){
+        return this.orderService.getCompletedOrdersByRestaurantId(restaurantId);
+    }
 }

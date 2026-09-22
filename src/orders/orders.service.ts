@@ -102,6 +102,11 @@ export class OrdersService {
     return data;
   }
 
+  async getCompletedOrdersByRestaurantId(restaurantId: string){
+    const data = await this.orderModel.find({restaurantId: new Types.ObjectId(restaurantId), status: { $in: ["completed", "cancelled"] }});
+    return data;
+  }
+
   async changeOrderStatus(orderId: string, newStatus: OrderStatus){
     const order = await this.orderModel.findById(new Types.ObjectId(orderId));
     if (!order) {
