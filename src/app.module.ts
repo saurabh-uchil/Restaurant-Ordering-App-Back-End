@@ -15,6 +15,7 @@ import { AuthModule } from './auth/auth.module';
 import { RestaurantModule } from './restaurant/restaurant.module';
 import { JwtModule } from '@nestjs/jwt';
 import { OrdersModule } from './orders/orders.module';
+import { SessionModule } from './session/session.module';
 
 @Module({
   imports: [MenuModule, ConfigModule.forRoot({ isGlobal: true }),
@@ -31,7 +32,8 @@ import { OrdersModule } from './orders/orders.module';
       global: true,
       secret: process.env.JWT_SECRET,
     }),
-    OrdersModule
+    OrdersModule,
+    SessionModule
   ],
   controllers: [AppController],
   providers: [AppService],
