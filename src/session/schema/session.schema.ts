@@ -5,8 +5,6 @@ import { Document } from 'mongoose';
 
 @Schema({ timestamps: true })
 export class Session extends Document {
-  @Prop({ required: true })
-  sessionId!: string;
 
   @Prop({ type: Types.ObjectId, ref: 'Restaurant', required: true })
   restaurantId!: Types.ObjectId;
@@ -19,6 +17,9 @@ export class Session extends Document {
 
   @Prop({ required: true,  select: false })
   hashedToken!: string;
+
+  @Prop({type: Date, default: null})
+  endedAt!: Date | null;
 }
 
 export const SessionSchema = SchemaFactory.createForClass(Session);
