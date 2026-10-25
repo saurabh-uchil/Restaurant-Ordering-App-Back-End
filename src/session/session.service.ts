@@ -28,6 +28,7 @@ export class SessionService {
         const token = randomBytes(32).toString('hex');
         const hashedToken = createHash('sha256').update(token).digest('hex');
         const status = 'active';
-        return await this.sessionModel.create({ restaurantId, table: sessionData.table, status, hashedToken});
+        const session =  await this.sessionModel.create({ restaurantId, table: sessionData.table, status, hashedToken});
+        return {session, token}
     }
 }
