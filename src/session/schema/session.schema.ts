@@ -19,7 +19,7 @@ export class Session extends Document {
   hashedToken!: string;
 
   @Prop({type: Date, default: null})
-  endedAt!: Date | null;
+  expiresAt!: Date | null;
 }
 
 export const SessionSchema = SchemaFactory.createForClass(Session);
