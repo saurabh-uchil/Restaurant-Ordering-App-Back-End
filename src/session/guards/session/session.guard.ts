@@ -4,9 +4,9 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
-import { Request } from 'express';
+import type { Request } from 'express';
 import { SessionService } from '../../session.service';
-import { Session } from '../../schema/session.schema';
+import type { Session } from '../../schema/session.schema';
 
 export type SessionRequest = Request & {
   diningSession?: Session;

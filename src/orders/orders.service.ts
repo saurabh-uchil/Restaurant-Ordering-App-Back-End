@@ -13,6 +13,7 @@ import { OrderStatus, PaymentStatus } from './types/order.type';
 import { Types } from 'mongoose';
 import { OrdersGateway } from './gateway/orders.gateway';
 import { calculateSubtotal, calculateTotal } from './helpers/priceHelpler';
+import type { Session } from '../session/schema/session.schema';
 
 @Injectable()
 export class OrdersService {
@@ -36,7 +37,7 @@ export class OrdersService {
     return true;
   }
 
-  async createOrder(order: OrderDTO) {
+  async createOrder(order: OrderDTO, session: Session) {
     const pricesAreValid = await this.checkIfPricesAreValid(order.items);
 
     if (!pricesAreValid) {
@@ -47,9 +48,10 @@ export class OrdersService {
     const total = calculateTotal(subtotal, 5, 10);
     const paymentStatus: PaymentStatus = 'pending';
     const status: OrderStatus = 'received';
-    const { items, table } = order;
-
-    const restaurantId = new Types.ObjectId(order.restaurantId)
+    const { items } = order;
+    const restaurantId = session.restaurantId;
+    const table = session.table;
+    const sessionId = session._id;
 
     let counter = await this.orderCounterModel.findOne({
       restaurantId,
@@ -69,6 +71,7 @@ export class OrdersService {
 
     const newOrder = {
       restaurantId,
+      sessionId,
       table,
       items,
       status,
