@@ -8,11 +8,13 @@ import { Model } from 'mongoose';
 import { SessionDto } from './dto/session.dto';
 import { randomBytes, createHash } from 'crypto';
 import { Types } from 'mongoose';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class SessionService {
   constructor(
     @InjectModel(Session.name) private sessionModel: Model<Session>,
+    private readonly configService: ConfigService,
   ) {}
 
   async getSession() {
@@ -30,11 +32,13 @@ export class SessionService {
     const token = randomBytes(32).toString('hex');
     const hashedToken = createHash('sha256').update(token).digest('hex');
     const status = 'active';
+    const maxAge = this.configService.getOrThrow<number>('SESSION_COOKIE_MAX_AGE');
     const session = await this.sessionModel.create({
       restaurantId,
       table: sessionData.table,
       status,
       hashedToken,
+      expiresAt: new Date(Date.now() + maxAge),
     });
     return { session, token };
   }

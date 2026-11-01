@@ -77,11 +77,8 @@ export class AuthService {
             }    
     }
 
-    async generateToken(payload, expiry){
-        const token = await this.jwtService.signAsync(payload, {
-            secret: process.env.JWT_SECRET,
-            expiresIn: expiry
-        });
+    async generateToken(payload){
+        const token = await this.jwtService.signAsync(payload);
         return token;
     }
 
@@ -101,7 +98,7 @@ export class AuthService {
 
         const payload = {sub: user._id, role: user.role, restaurant: user.restaurant._id}
         
-        const accessToken = await this.generateToken(payload, "15m");
+        const accessToken = await this.generateToken(payload);
        
         //const refreshToken = await this.generateToken(payload, "2d");
 

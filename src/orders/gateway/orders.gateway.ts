@@ -2,7 +2,7 @@
 import { OnGatewayConnection, OnGatewayDisconnect, SubscribeMessage, WebSocketGateway, WebSocketServer } from "@nestjs/websockets";
 import { Server, Socket } from "socket.io";
 
-@WebSocketGateway({cors: {origin: '*'}})
+@WebSocketGateway()
 export class OrdersGateway implements OnGatewayConnection, OnGatewayDisconnect{
 
     @WebSocketServer()

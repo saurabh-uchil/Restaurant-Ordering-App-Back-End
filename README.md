@@ -31,6 +31,23 @@
 $ npm install
 ```
 
+## Environment configuration
+
+Copy `.env.example` to `.env` and set `MONGODB_URI` and `JWT_SECRET` before starting the API. The app validates its environment on startup and stops with a clear error if a required value is missing or invalid.
+
+```bash
+# PowerShell
+Copy-Item .env.example .env
+# Edit .env, then start the API
+npm run dev
+```
+
+`MONGODB_URI` can point to a local MongoDB instance during development or to a MongoDB Atlas database in production. `JWT_SECRET` must be a private random value; use a secret manager or the hosting provider's environment settings in production. The backend reads configuration through Nest's `ConfigService`.
+
+For deployment, configure `NODE_ENV=production`, `PORT`, `MONGODB_URI`, `JWT_SECRET`, and `CORS_ORIGINS` on the backend host. `CORS_ORIGINS` is a comma-separated list of exact frontend origins, such as `https://the-pass.example.com`; do not include paths. `FRONTEND_URL` can also be set to the primary frontend origin. Set `SESSION_COOKIE_SECURE=true` for HTTPS. Keep `SESSION_COOKIE_SAME_SITE=lax` when both deployments are same-site (for example, `app.example.com` and `api.example.com`). For genuinely cross-site deployments, use `SESSION_COOKIE_SAME_SITE=none` together with `SESSION_COOKIE_SECURE=true`; browsers may restrict third-party cookies, so same-site domains are more reliable. `SESSION_COOKIE_MAX_AGE` is in milliseconds and also sets the dining session's server-side expiry.
+
+In MongoDB Atlas, create a database user and allow the backend host's outbound network address in Network Access. Put the resulting connection string only in the backend host's `MONGODB_URI` setting. Never commit `.env` or production credentials.
+
 ## Compile and run the project
 
 ```bash

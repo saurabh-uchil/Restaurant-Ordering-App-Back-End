@@ -14,10 +14,14 @@ import {
 import { SessionDto } from './dto/session.dto';
 import { SessionService } from './session.service';
 import { Request, Response } from 'express';
+import { ConfigService } from '@nestjs/config';
 
 @Controller('session')
 export class SessionController {
-  constructor(private readonly sessionService: SessionService) {}
+  constructor(
+    private readonly sessionService: SessionService,
+    private readonly configService: ConfigService,
+  ) {}
 
   @Get()
   getSession() {
@@ -31,13 +35,19 @@ export class SessionController {
   ) {
     const { session, token } = await this.sessionService.createSession(body);
     const { _id, restaurantId, table, status } = session;
-    response.cookie('dining_session', token, { httpOnly: true });
+    response.cookie(this.configService.getOrThrow<string>('SESSION_COOKIE_NAME'), token, {
+      httpOnly: true,
+      secure: this.configService.getOrThrow<boolean>('SESSION_COOKIE_SECURE'),
+      sameSite: this.configService.getOrThrow<'lax' | 'strict' | 'none'>('SESSION_COOKIE_SAME_SITE'),
+      maxAge: this.configService.getOrThrow<number>('SESSION_COOKIE_MAX_AGE'),
+    });
     return { sessionId: _id, restaurantId, table, status };
   }
 
   @Get('isValid')
   async validateSession(@Req() request: Request) {
-    const token = request.cookies?.dining_session;
+    const cookieName = this.configService.getOrThrow<string>('SESSION_COOKIE_NAME');
+    const token = request.cookies?.[cookieName];
 
     if (!token) {
       throw new UnauthorizedException('Dining session cookie is missing');
