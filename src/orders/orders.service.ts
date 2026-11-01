@@ -95,6 +95,10 @@ export class OrdersService {
     return data;
   }
 
+  async getOrdersForSession(session: Session) {
+    return this.orderModel.find({ sessionId: session._id }).sort({ createdAt: 1 }).exec();
+  }
+
   async getOrdersByRestaurantId(restaurantId: string){
     const data = await this.orderModel.find({restaurantId: new Types.ObjectId(restaurantId)});
     return data;

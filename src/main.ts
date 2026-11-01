@@ -4,9 +4,13 @@ import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import cookieParser from 'cookie-parser';
+import { ConfigService } from '@nestjs/config';
+import { ConfigurableIoAdapter } from './config/configurable-io.adapter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  const configService = app.get(ConfigService);
+  app.useWebSocketAdapter(new ConfigurableIoAdapter(app, configService));
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -16,7 +20,7 @@ async function bootstrap() {
   );
   app.use(cookieParser());
   app.enableCors({
-    origin: 'http://localhost:5173',
+    origin: configService.getOrThrow<string[]>('CORS_ORIGINS'),
     credentials: true,
   });
 
@@ -28,6 +32,6 @@ async function bootstrap() {
   const documentFactory = () => SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, documentFactory);
   
-  await app.listen(process.env.PORT ?? 3000);
+  await app.listen(configService.getOrThrow<number>('PORT'));
 }
 bootstrap();
