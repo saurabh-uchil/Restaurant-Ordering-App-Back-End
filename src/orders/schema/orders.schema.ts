@@ -12,6 +12,15 @@ export class Order extends Document {
   @Prop({ type: Types.ObjectId, ref: 'Restaurant', required: true })
   restaurantId!: Types.ObjectId;
 
+  @Prop({
+    type: Types.ObjectId,
+    ref: 'Session',
+    required: function (this: Order) {
+      return this.isNew;
+    },
+  })
+  sessionId!: Types.ObjectId;
+
   @Prop({ required: true })
   status!: OrderStatus;
 
