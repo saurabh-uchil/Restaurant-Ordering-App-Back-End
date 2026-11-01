@@ -1,10 +1,12 @@
 /* eslint-disable prettier/prettier */
-import { IsNumber, IsString } from "class-validator";
+import { IsInt, IsMongoId, IsNumber, Min } from "class-validator";
 
 export class SessionDto {
-  @IsString()
+  @IsMongoId()
   restaurantId!: string;
   
   @IsNumber()
+  @IsInt()
+  @Min(1)
   table!: number;
 }

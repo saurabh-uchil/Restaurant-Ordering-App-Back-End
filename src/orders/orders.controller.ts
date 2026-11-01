@@ -27,6 +27,12 @@ export class OrdersController {
         return this.orderService.createOrder(order, request.diningSession!);
     }
 
+    @UseGuards(SessionGuard)
+    @Get('/session/current')
+    getOrdersForCurrentSession(@Req() request: SessionRequest) {
+        return this.orderService.getOrdersForSession(request.diningSession!);
+    }
+
     @Get('/:orderId')
     getOrderById(@Param('orderId') orderId: string){
         return this.orderService.getOrderById(orderId);

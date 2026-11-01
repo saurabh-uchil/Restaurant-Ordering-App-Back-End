@@ -31,6 +31,47 @@
 $ npm install
 ```
 
+## Environment configuration
+
+Copy `.env.example` to `.env` and set `MONGODB_URI` and `JWT_SECRET` before starting the API. The app validates its environment on startup and stops with a clear error if a required value is missing or invalid.
+
+```bash
+# PowerShell
+Copy-Item .env.example .env
+# Edit .env, then start the API
+npm run dev
+```
+
+`MONGODB_URI` can point to a local MongoDB instance during development or to a MongoDB Atlas database in production. `JWT_SECRET` must be a private random value; use a secret manager or the hosting provider's environment settings in production. The backend reads configuration through Nest's `ConfigService`.
+
+For deployment, configure `NODE_ENV=production`, `PORT`, `MONGODB_URI`, `JWT_SECRET`, and `CORS_ORIGINS` on the backend host. `CORS_ORIGINS` is a comma-separated list of exact frontend origins, such as `https://the-pass.example.com`; do not include paths. `FRONTEND_URL` can also be set to the primary frontend origin. Set `SESSION_COOKIE_SECURE=true` for HTTPS. Keep `SESSION_COOKIE_SAME_SITE=lax` when both deployments are same-site (for example, `app.example.com` and `api.example.com`). For genuinely cross-site deployments, use `SESSION_COOKIE_SAME_SITE=none` together with `SESSION_COOKIE_SECURE=true`; browsers may restrict third-party cookies, so same-site domains are more reliable. `SESSION_COOKIE_MAX_AGE` is in milliseconds and also sets the dining session's server-side expiry.
+
+In MongoDB Atlas, create a database user and allow the backend host's outbound network address in Network Access. Put the resulting connection string only in the backend host's `MONGODB_URI` setting. Never commit `.env` or production credentials.
+
+## Shared dining sessions
+
+Device token hashes are stored in the session document's `credentials` array. The old top-level `hashedToken` field is still checked for backward compatibility, so currently active sessions do not need a token backfill. New devices get independent credentials, while an inactive parent session invalidates all of them. `GET /session/active` returns only whether a live session exists; `POST /session/join` attaches a new device credential; `GET /orders/session/current` returns orders using the validated session cookie. Restaurant JWTs can close a session with `PATCH /session/:sessionId/close`.
+
+Joining is confirmed by the customer in the UI, but the public table QR code is the authorization in this initial version. Anyone who can access that QR code may join and view that table session's orders; the confirmation modal is not an access-control mechanism.
+
+The unique partial index on active `(restaurantId, table)` pairs prevents two concurrent starts from creating two active sessions. Before deploying this index to a database with existing data, find duplicate active sessions and decide which one should remain active; the index cannot be created while duplicate keys exist. In Atlas Data Explorer, inspect duplicates with:
+
+```javascript
+db.sessions.aggregate([
+  { $match: { status: 'active' } },
+  {
+    $group: {
+      _id: { restaurantId: '$restaurantId', table: '$table' },
+      sessionIds: { $push: '$_id' },
+      count: { $sum: 1 },
+    },
+  },
+  { $match: { count: { $gt: 1 } } },
+]);
+```
+
+Review each duplicate group before changing it. Keep the session for the current visit active and set the others to `closed` (or `expired` if their expiry has passed). Their old cookies will stop validating, and those devices can join the remaining active session again. Existing orders remain stored with their original `sessionId`; only move orders between sessions if you have confirmed they belong to the same visit.
+
 ## Compile and run the project
 
 ```bash

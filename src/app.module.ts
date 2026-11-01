@@ -4,6 +4,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { MenuModule } from './menu/menu.module';
 import { ConfigModule } from '@nestjs/config';
+import { ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AddonModule } from './menu/addon/addon.module';
 import { DietaryAlternativesModule } from './menu/dietary-alternatives/dietary-alternatives.module';
@@ -16,10 +17,16 @@ import { RestaurantModule } from './restaurant/restaurant.module';
 import { JwtModule } from '@nestjs/jwt';
 import { OrdersModule } from './orders/orders.module';
 import { SessionModule } from './session/session.module';
+import { validateEnvironment } from './config/env.validation';
 
 @Module({
-  imports: [MenuModule, ConfigModule.forRoot({ isGlobal: true }),
-    MongooseModule.forRoot(process.env.MONGO_URL!),
+  imports: [MenuModule, ConfigModule.forRoot({ isGlobal: true, validate: validateEnvironment }),
+    MongooseModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        uri: configService.getOrThrow<string>('MONGODB_URI'),
+      }),
+    }),
     AddonModule,
     DietaryAlternativesModule,
     OptionGroupModule,
@@ -28,9 +35,15 @@ import { SessionModule } from './session/session.module';
     UserModule,
     AuthModule,
     RestaurantModule,
-    JwtModule.register({
+    JwtModule.registerAsync({
       global: true,
-      secret: process.env.JWT_SECRET,
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        secret: configService.getOrThrow<string>('JWT_SECRET'),
+        signOptions: {
+          expiresIn: configService.getOrThrow<string>('JWT_EXPIRATION') as `${number}${'ms' | 's' | 'm' | 'h' | 'd'}`,
+        },
+      }),
     }),
     OrdersModule,
     SessionModule
