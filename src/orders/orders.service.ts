@@ -90,9 +90,11 @@ export class OrdersService {
     }
   }
 
-  async getOrderById(orderId: string){
-    const data = await this.orderModel.findById(new Types.ObjectId(orderId));
-    return data;
+  async getOrderById(orderId: string, session: Session){
+    return this.orderModel.findOne({
+      _id: new Types.ObjectId(orderId),
+      sessionId: session._id,
+    }).exec();
   }
 
   async getOrdersForSession(session: Session) {
@@ -129,3 +131,4 @@ export class OrdersService {
       }
   }
 }
+

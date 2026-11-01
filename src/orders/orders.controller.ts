@@ -33,9 +33,10 @@ export class OrdersController {
         return this.orderService.getOrdersForSession(request.diningSession!);
     }
 
+    @UseGuards(SessionGuard)
     @Get('/:orderId')
-    getOrderById(@Param('orderId') orderId: string){
-        return this.orderService.getOrderById(orderId);
+    getOrderById(@Param('orderId') orderId: string, @Req() request: SessionRequest){
+        return this.orderService.getOrderById(orderId, request.diningSession!);
     }
 
     @Get('/restaurant/:restaurantId')
@@ -58,3 +59,4 @@ export class OrdersController {
         return this.orderService.getCompletedOrdersByRestaurantId(restaurantId);
     }
 }
+
