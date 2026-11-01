@@ -1,15 +1,30 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable prettier/prettier */
-import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
-import { Observable } from 'rxjs';
+import {
+  CanActivate,
+  ExecutionContext,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
+import { Request } from 'express';
+import { SessionService } from '../../session.service';
+import { Session } from '../../schema/session.schema';
+
+export type SessionRequest = Request & {
+  diningSession?: Session;
+};
 
 @Injectable()
 export class SessionGuard implements CanActivate {
-  canActivate(
-    context: ExecutionContext,
-  ): boolean | Promise<boolean> | Observable<boolean> {
-    const request = context.switchToHttp().getRequest();
-    console.log(request);
+  constructor(private readonly sessionService: SessionService) {}
+
+  async canActivate(context: ExecutionContext): Promise<boolean> {
+    const request = context.switchToHttp().getRequest<SessionRequest>();
+    const token = request.cookies?.dining_session;
+
+    if (!token) {
+      throw new UnauthorizedException('Dining session cookie is missing');
+    }
+
+    request.diningSession = await this.sessionService.isValid(token);
     return true;
   }
 }

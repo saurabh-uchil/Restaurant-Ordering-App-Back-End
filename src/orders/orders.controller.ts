@@ -1,6 +1,17 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable prettier/prettier */
-import { Body, Controller, Get, Param, Patch, Post } from '@nestjs/common';
+import {
+    Body,
+    Controller,
+    ForbiddenException,
+    Get,
+    Param,
+    Patch,
+    Post,
+    Req,
+    UseGuards,
+} from '@nestjs/common';
+import { SessionGuard, SessionRequest } from '../session/guards/session/session.guard';
 import { OrdersService } from './orders.service';
 import { OrderDTO } from './dto/order.dto';
 import { OrderStatus } from './types/order.type';
@@ -10,8 +21,16 @@ export class OrdersController {
 
     constructor(private readonly orderService: OrdersService){}
 
+    @UseGuards(SessionGuard)
     @Post()
-    createOrder(@Body() order: OrderDTO){
+    createOrder(@Body() order: OrderDTO, @Req() request: SessionRequest){
+        const session = request.diningSession!;
+        if (
+            session.restaurantId.toString() !== order.restaurantId ||
+            String(session.table) !== order.table
+        ) {
+            throw new ForbiddenException('Order does not match the active dining session');
+        }
         return this.orderService.createOrder(order);
     }
 
