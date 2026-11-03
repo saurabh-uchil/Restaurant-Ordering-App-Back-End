@@ -10,9 +10,6 @@ export class SessionGuard implements CanActivate {
   ): boolean | Promise<boolean> | Observable<boolean> {
     const request = context.switchToHttp().getRequest();
 
-    //check if the session is active or not
-    //if session is active we allow to create or join order
-    console.log(request);
     return true;
   }
 }
