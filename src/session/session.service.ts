@@ -58,4 +58,18 @@ export class SessionService {
 
     return session;
   }
+
+  async findActiveSession(restaurantId: string, table: number){
+    const session = await this.sessionModel.findOne({
+    restaurantId: new Types.ObjectId(restaurantId),
+    table,
+    status: 'active',
+    $or: [
+      { expiresAt: null },
+      { expiresAt: { $gt: new Date() } },
+    ],
+  });
+
+  return session;
+  }
 }
