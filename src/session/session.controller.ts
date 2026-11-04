@@ -56,4 +56,11 @@ export class SessionController {
       },
     };
   }
+
+  @Get('active')
+  async getActive(@Body() body: SessionDto){
+    const {restaurantId, table} = body;
+    const active = await this.sessionService.findActiveSession(restaurantId, table);
+    return active;
+  }
 }
