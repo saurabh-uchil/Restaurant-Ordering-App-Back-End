@@ -4,6 +4,7 @@ import {
   Controller,
   Get,
   Post,
+  Query,
   Req,
   Res,
   UnauthorizedException,
@@ -55,11 +56,12 @@ export class SessionController {
     };
   }
 
-  @Get('active')
-  async getActive(@Body() body: SessionDto){
-    const {restaurantId, table} = body;
-    const active = await this.sessionService.findActiveSession(restaurantId, table);
-    return active;
-  }
+ @Get('active')
+  async getActive(@Query('restaurantId') restaurantId: string,@Query('table') table: string) {
+  return await this.sessionService.findActiveSession(
+    restaurantId,
+    Number(table),
+  );
+}
 
 }
