@@ -56,12 +56,31 @@ export class SessionController {
     };
   }
 
- @Get('active')
-  async getActive(@Query('restaurantId') restaurantId: string,@Query('table') table: string) {
-  return await this.sessionService.findActiveSession(
-    restaurantId,
-    Number(table),
-  );
-}
+  @Get('active')
+  async getActive(
+    @Query('restaurantId') restaurantId: string,
+    @Query('table') table: string,
+  ) {
+    const activeSession = await this.sessionService.findActiveSession(
+      restaurantId,
+      Number(table),
+    );
 
+    if (!activeSession) {
+      return {
+        hasActiveSession: false,
+        session: null,
+      };
+    }
+
+    return {
+      hasActiveSession: true,
+      session: {
+        sessionId: activeSession._id,
+        restaurantId: activeSession.restaurantId,
+        table: activeSession.table,
+        status: activeSession.status,
+      },
+    };
+  }
 }
