@@ -66,6 +66,8 @@ export class SessionController {
       Number(table),
     );
 
+    //need to validate and join session here
+
     if (!activeSession) {
       return {
         hasActiveSession: false,
