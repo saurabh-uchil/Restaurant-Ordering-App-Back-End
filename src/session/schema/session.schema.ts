@@ -15,8 +15,8 @@ export class Session extends Document {
   @Prop({ required: true })
   status!: string;
 
-  @Prop({ required: true,  select: false })
-  hashedToken!: string;
+  /* @Prop({ required: true,  select: false })
+  hashedToken!: string; */
 
   @Prop({type: Date, default: null})
   expiresAt!: Date | null;

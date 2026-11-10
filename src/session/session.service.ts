@@ -6,11 +6,16 @@ import { Model } from 'mongoose';
 import { SessionDto } from './dto/session.dto';
 import { randomBytes, createHash } from 'crypto';
 import { Types } from 'mongoose';
+import { SessionDevice } from './schema/session-device.schema';
 
 @Injectable()
 export class SessionService {
   constructor(
-    @InjectModel(Session.name) private sessionModel: Model<Session>,
+    @InjectModel(Session.name) 
+    private sessionModel: Model<Session>,
+
+    @InjectModel(SessionDevice.name)
+    private sessionDeviceModel: Model<SessionDevice>,
   ) {}
 
   async getSession() {
