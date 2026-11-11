@@ -11,7 +11,7 @@ import { SessionDevice } from './schema/session-device.schema';
 @Injectable()
 export class SessionService {
   constructor(
-    @InjectModel(Session.name) 
+    @InjectModel(Session.name)
     private sessionModel: Model<Session>,
 
     @InjectModel(SessionDevice.name)
@@ -24,22 +24,35 @@ export class SessionService {
 
   async createSession(sessionData: SessionDto) {
     const restaurantId = new Types.ObjectId(sessionData.restaurantId);
-    console.log(
-      'Creating session for restaurantId:',
-      restaurantId,
-      'and table:',
-      sessionData.table,
-    );
     const token = randomBytes(32).toString('hex');
     const hashedToken = createHash('sha256').update(token).digest('hex');
     const status = 'active';
-    const session = await this.sessionModel.create({
-      restaurantId,
-      table: sessionData.table,
-      status,
-      hashedToken,
-    });
-    return { session, token };
+
+    const mongoSession = await this.sessionModel.db.startSession();
+
+    try {
+      await mongoSession.withTransaction(async () => {
+        // 1. Create Session
+
+        const session = await this.sessionModel.create({
+          restaurantId,
+          table: sessionData.table,
+          status,
+        });
+        // 2. Create SessionDevice using the new Session ID
+        const sessionDevice = await this.sessionDeviceModel.create({
+          sessionId: session._id,
+          hashedToken,
+        });
+        console.log('Session created:', session);
+        console.log('SessionDevice created:', sessionDevice);
+        return { session, token };
+      });
+    } finally {
+      await mongoSession.endSession();
+    }
+
+    
   }
 
   async isValid(token: string) {
@@ -62,17 +75,14 @@ export class SessionService {
     return session;
   }
 
-  async findActiveSession(restaurantId: string, table: number){
+  async findActiveSession(restaurantId: string, table: number) {
     const session = await this.sessionModel.findOne({
-    restaurantId: new Types.ObjectId(restaurantId),
-    table,
-    status: 'active',
-    $or: [
-      { expiresAt: null },
-      { expiresAt: { $gt: new Date() } },
-    ],
-  });
+      restaurantId: new Types.ObjectId(restaurantId),
+      table,
+      status: 'active',
+      $or: [{ expiresAt: null }, { expiresAt: { $gt: new Date() } }],
+    });
 
-  return session;
+    return session;
   }
 }
