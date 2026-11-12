@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable prettier/prettier */
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
@@ -29,7 +30,7 @@ export class SessionService {
     const status = 'active';
 
     const mongoSession = await this.sessionModel.db.startSession();
-
+    let response;
     try {
       await mongoSession.withTransaction(async () => {
         // 1. Create Session
@@ -46,13 +47,13 @@ export class SessionService {
         });
         console.log('Session created:', session);
         console.log('SessionDevice created:', sessionDevice);
-        return { session, token };
+        response = { session, token };
       });
     } finally {
       await mongoSession.endSession();
     }
 
-    
+    return response;
   }
 
   async isValid(token: string) {
