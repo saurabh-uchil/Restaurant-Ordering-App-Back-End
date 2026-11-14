@@ -30,7 +30,7 @@ export class SessionController {
     @Res({ passthrough: true }) response: Response,
   ) {
     const { session, token } = await this.sessionService.createSession(body);
-    //console.log(token);
+    console.log(token);
     const { _id, restaurantId, table, status } = session;
     response.cookie('dining_session', token, { httpOnly: true });
     return { sessionId: _id, restaurantId, table, status };
