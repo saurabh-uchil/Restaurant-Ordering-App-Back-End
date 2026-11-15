@@ -7,13 +7,17 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { Order, OrderSchema } from './schema/orders.schema';
 import { OrderCounter, OrderCounterSchema } from './schema/orderCounter.schema';
 import { OrdersGateway } from './gateway/orders.gateway';
+import { SessionModule } from '../session/session.module';
 
 @Module({
-  imports: [MongooseModule.forFeature([
-    {name:Order.name, schema: OrderSchema},
-    {name:OrderCounter.name, schema: OrderCounterSchema}
-  ]), 
-    FoodItemsModule],
+  imports: [
+    MongooseModule.forFeature([
+      { name: Order.name, schema: OrderSchema },
+      { name: OrderCounter.name, schema: OrderCounterSchema },
+    ]),
+    FoodItemsModule,
+    SessionModule,
+  ],
   providers: [OrdersService, OrdersGateway],
   controllers: [OrdersController],
 })

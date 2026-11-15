@@ -5,6 +5,7 @@ import { SessionController } from './session.controller';
 import { MongooseModule } from '@nestjs/mongoose';
 import { SessionSchema } from './schema/session.schema';
 import { SessionDeviceSchema } from './schema/session-device.schema';
+import { SessionGuard } from './guards/session/session.guard';
 
 @Module({
   imports: [
@@ -13,7 +14,8 @@ import { SessionDeviceSchema } from './schema/session-device.schema';
       { name: 'SessionDevice', schema: SessionDeviceSchema },
     ]),
   ],
-  providers: [SessionService],
+  providers: [SessionService, SessionGuard],
   controllers: [SessionController],
+  exports: [SessionGuard, SessionService],
 })
 export class SessionModule {}

@@ -1,16 +1,18 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable prettier/prettier */
-import { Body, Controller, Get, Param, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
 import { OrdersService } from './orders.service';
 import { OrderDTO } from './dto/order.dto';
 import { OrderStatus } from './types/order.type';
+import { SessionGuard } from '../session/guards/session/session.guard';
 
 @Controller('orders')
 export class OrdersController {
 
-    constructor(private readonly orderService: OrdersService){}
+    constructor(private readonly orderService: OrdersService, private readonly sessionGuard: SessionGuard){}
 
     @Post()
+    @UseGuards(SessionGuard)
     createOrder(@Body() order: OrderDTO){
         return this.orderService.createOrder(order);
     }

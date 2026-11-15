@@ -59,7 +59,17 @@ export class SessionService {
   async isValid(token: string) {
     const hashedToken = createHash('sha256').update(token).digest('hex');
 
-    const session = await this.sessionModel.findOne({ hashedToken });
+    const device = await this.sessionDeviceModel.findOne({ hashedToken });
+
+    if (!device) {
+      throw new UnauthorizedException('Invalid dining session');
+    }
+
+    if (device.revokedAt) {
+      throw new UnauthorizedException('Device access has been revoked');
+    }
+
+    const session = await this.sessionModel.findById({ _id: device?.sessionId });
 
     if (!session) {
       throw new UnauthorizedException('Invalid dining session');
