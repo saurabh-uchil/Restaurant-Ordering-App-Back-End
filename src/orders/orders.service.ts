@@ -1,14 +1,22 @@
 /* eslint-disable @typescript-eslint/no-misused-promises */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable prettier/prettier */
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { FoodItemsService } from '../menu/food-items/food-items.service';
 import { CartItemDTO } from './dto/cart.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Order } from './schema/orders.schema';
 import { OrderCounter } from './schema/orderCounter.schema';
-import { OrderStatus, PaymentStatus } from './types/order.type';
+import {
+  CreateOrderInput,
+  OrderStatus,
+  PaymentStatus,
+} from './types/order.type';
 import { Types } from 'mongoose';
 import { OrdersGateway } from './gateway/orders.gateway';
 import { calculateSubtotal, calculateTotal } from './helpers/priceHelpler';
@@ -20,7 +28,7 @@ export class OrdersService {
     @InjectModel(Order.name) private orderModel: Model<Order>,
     @InjectModel(OrderCounter.name)
     private orderCounterModel: Model<OrderCounter>,
-    private readonly ordersGateway: OrdersGateway
+    private readonly ordersGateway: OrdersGateway,
   ) {}
 
   async checkIfPricesAreValid(cart: CartItemDTO[]): Promise<boolean> {
@@ -35,90 +43,91 @@ export class OrdersService {
     return true;
   }
 
- 
-async createOrder(order: CreateOrderInput) {
-  const pricesAreValid = await this.checkIfPricesAreValid(order.items);
+  async createOrder(order: CreateOrderInput) {
+    const pricesAreValid = await this.checkIfPricesAreValid(order.items);
 
-  if (!pricesAreValid) {
-    throw new ConflictException('Prices are updated.. Pls try again');
-  }
+    if (!pricesAreValid) {
+      throw new ConflictException('Prices are updated.. Pls try again');
+    }
 
-  const subtotal = calculateSubtotal(order.items);
-  const total = calculateTotal(subtotal, 5, 10);
+    const subtotal = calculateSubtotal(order.items);
+    const total = calculateTotal(subtotal, 5, 10);
 
-  const paymentStatus: PaymentStatus = 'pending';
-  const status: OrderStatus = 'received';
+    const paymentStatus: PaymentStatus = 'pending';
+    const status: OrderStatus = 'received';
 
-  const {
-    items,
-    table,
-    restaurantId,
-    sessionId,
-  } = order;
+    const { items, table, restaurantId, sessionId } = order;
 
-  let counter = await this.orderCounterModel.findOne({
-    restaurantId,
-  });
-
-  if (!counter) {
-    counter = await this.orderCounterModel.create({
+    let counter = await this.orderCounterModel.findOne({
       restaurantId,
-      sequence: 1000,
     });
+
+    if (!counter) {
+      counter = await this.orderCounterModel.create({
+        restaurantId,
+        sequence: 1000,
+      });
+    }
+
+    counter.sequence += 1;
+    await counter.save();
+
+    const orderNumber = counter.sequence;
+
+    const newOrder = {
+      sessionId,
+      restaurantId,
+      table,
+      items,
+      status,
+      paymentStatus,
+      total,
+      subtotal,
+      orderNumber,
+    };
+
+    const orderObject = await new this.orderModel(newOrder).save();
+
+    this.ordersGateway.handleOrderUpdate(
+      orderObject.orderNumber,
+      orderObject.status,
+    );
+
+    return {
+      message: 'Order Created Successfully',
+      orderId: orderObject._id,
+    };
   }
 
-  counter.sequence += 1;
-  await counter.save();
-
-  const orderNumber = counter.sequence;
-
-  const newOrder = {
-    sessionId,
-    restaurantId,
-    table,
-    items,
-    status,
-    paymentStatus,
-    total,
-    subtotal,
-    orderNumber,
-  };
-
-  const orderObject = await new this.orderModel(newOrder).save();
-
-  this.ordersGateway.handleOrderUpdate(
-    orderObject.orderNumber,
-    orderObject.status,
-  );
-
-  return {
-    message: 'Order Created Successfully',
-    orderId: orderObject._id,
-  };
-}
-
-
-  async getOrderById(orderId: string){
+  async getOrderById(orderId: string) {
     const data = await this.orderModel.findById(new Types.ObjectId(orderId));
     return data;
   }
 
-  async getOrdersByRestaurantId(restaurantId: string){
-    const data = await this.orderModel.find({restaurantId: new Types.ObjectId(restaurantId)});
+  async getOrdersByRestaurantId(restaurantId: string) {
+    const data = await this.orderModel.find({
+      restaurantId: new Types.ObjectId(restaurantId),
+    });
     return data;
   }
 
-  async getActiveOrdersByRestaurantId(restaurantId: string){
-    const data = await this.orderModel.find({restaurantId: new Types.ObjectId(restaurantId), status: { $in: ["received", "preparing", "ready"] }});
+  async getActiveOrdersByRestaurantId(restaurantId: string) {
+    const data = await this.orderModel.find({
+      restaurantId: new Types.ObjectId(restaurantId),
+      status: { $in: ['received', 'preparing', 'ready'] },
+    });
     return data;
   }
 
-  async getCompletedOrdersByRestaurantId(restaurantId: string){
-    const data = await this.orderModel.find({restaurantId: new Types.ObjectId(restaurantId), status: { $in: ["completed", "cancelled"] }});
+  async getCompletedOrdersByRestaurantId(restaurantId: string) {
+    const data = await this.orderModel.find({
+      restaurantId: new Types.ObjectId(restaurantId),
+      status: { $in: ['completed', 'cancelled'] },
+    });
     return data;
   }
 
-  async changeOrderStatus(orderId: string, newStatus: OrderStatus){
+  async changeOrderStatus(orderId: string, newStatus: OrderStatus) {
     const order = await this.orderModel.findById(new Types.ObjectId(orderId));
     if (!order) {
       throw new NotFoundException('Order not found');
@@ -127,9 +136,16 @@ async createOrder(order: CreateOrderInput) {
     await order.save();
     this.ordersGateway.handleCustomerOrderUpdate(order.orderNumber, newStatus);
     return {
-        message: "Order Status Updated Successfully",
-        orderId: order._id,
-        newStatus: order.status
-      }
+      message: 'Order Status Updated Successfully',
+      orderId: order._id,
+      newStatus: order.status,
+    };
+  }
+
+  async getOrdersBySessionId(sessionId: string) {
+    return this.orderModel
+      .find({ sessionId: new Types.ObjectId(sessionId) })
+      .sort({ createdAt: -1 })
+      .exec();
   }
 }

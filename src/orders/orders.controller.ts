@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable prettier/prettier */
 import {
@@ -21,7 +22,6 @@ import { Request } from 'express';
 export class OrdersController {
   constructor(
     private readonly orderService: OrdersService,
-    private readonly sessionGuard: SessionGuard,
   ) {}
 
   @Post()
@@ -72,4 +72,18 @@ export class OrdersController {
   ) {
     return this.orderService.getCompletedOrdersByRestaurantId(restaurantId);
   }
+
+  @Get('/session/current')
+@UseGuards(SessionGuard)
+getOrdersByDiningSession(@Req() req: Request) {
+  const diningSession = req.diningSession;
+
+  if (!diningSession) {
+    throw new UnauthorizedException('Dining session not found');
+  }
+
+  return this.orderService.getOrdersBySessionId(
+    diningSession._id.toString(),
+  );
+}
 }
