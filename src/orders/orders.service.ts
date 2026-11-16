@@ -2,7 +2,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable prettier/prettier */
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
-import { OrderDTO } from './dto/order.dto';
 import { FoodItemsService } from '../menu/food-items/food-items.service';
 import { CartItemDTO } from './dto/cart.dto';
 import { InjectModel } from '@nestjs/mongoose';
@@ -36,56 +35,68 @@ export class OrdersService {
     return true;
   }
 
-  async createOrder(order: OrderDTO) {
-    const pricesAreValid = await this.checkIfPricesAreValid(order.items);
+ 
+async createOrder(order: CreateOrderInput) {
+  const pricesAreValid = await this.checkIfPricesAreValid(order.items);
 
-    if (!pricesAreValid) {
-      throw new ConflictException('Prices are updated.. Pls try again');
-    }
-
-    const subtotal = calculateSubtotal(order.items);
-    const total = calculateTotal(subtotal, 5, 10);
-    const paymentStatus: PaymentStatus = 'pending';
-    const status: OrderStatus = 'received';
-    const { items, table } = order;
-
-    const restaurantId = new Types.ObjectId(order.restaurantId)
-
-    let counter = await this.orderCounterModel.findOne({
-      restaurantId,
-    });
-
-    if (!counter) {
-      counter = await this.orderCounterModel.create({
-        restaurantId,
-        sequence: 1000,
-      });
-    }
-
-    counter.sequence += 1;
-    await counter.save();
-
-    const orderNumber = counter.sequence;
-
-    const newOrder = {
-      restaurantId,
-      table,
-      items,
-      status,
-      paymentStatus,
-      total,
-      subtotal,
-      orderNumber,
-    };
-
-    const orderObject = await new this.orderModel(newOrder).save();
-    this.ordersGateway.handleOrderUpdate(orderObject.orderNumber, orderObject.status);
-    
-    return {
-        message: "Order Created Successfully",
-        orderId: orderObject._id,
-    }
+  if (!pricesAreValid) {
+    throw new ConflictException('Prices are updated.. Pls try again');
   }
+
+  const subtotal = calculateSubtotal(order.items);
+  const total = calculateTotal(subtotal, 5, 10);
+
+  const paymentStatus: PaymentStatus = 'pending';
+  const status: OrderStatus = 'received';
+
+  const {
+    items,
+    table,
+    restaurantId,
+    sessionId,
+  } = order;
+
+  let counter = await this.orderCounterModel.findOne({
+    restaurantId,
+  });
+
+  if (!counter) {
+    counter = await this.orderCounterModel.create({
+      restaurantId,
+      sequence: 1000,
+    });
+  }
+
+  counter.sequence += 1;
+  await counter.save();
+
+  const orderNumber = counter.sequence;
+
+  const newOrder = {
+    sessionId,
+    restaurantId,
+    table,
+    items,
+    status,
+    paymentStatus,
+    total,
+    subtotal,
+    orderNumber,
+  };
+
+  const orderObject = await new this.orderModel(newOrder).save();
+
+  this.ordersGateway.handleOrderUpdate(
+    orderObject.orderNumber,
+    orderObject.status,
+  );
+
+  return {
+    message: 'Order Created Successfully',
+    orderId: orderObject._id,
+  };
+}
+
 
   async getOrderById(orderId: string){
     const data = await this.orderModel.findById(new Types.ObjectId(orderId));

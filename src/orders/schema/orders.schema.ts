@@ -29,6 +29,13 @@ export class Order extends Document {
 
   @Prop({ required: true })
   total!: number;
+
+  @Prop({
+    type: Types.ObjectId,
+    ref: 'Session',
+    required: true,
+  })
+  sessionId!: Types.ObjectId;
 }
 
 export const OrderSchema = SchemaFactory.createForClass(Order);

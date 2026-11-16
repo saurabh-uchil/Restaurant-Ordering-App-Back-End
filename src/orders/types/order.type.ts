@@ -1,4 +1,7 @@
 /* eslint-disable prettier/prettier */
+import { OrderDTO } from "../dto/order.dto";
+import {  Types } from 'mongoose';
+
 type SelectedItem = {
   name: string;
   extraCost: number;
@@ -29,3 +32,9 @@ export type PaymentStatus =
   | "paid"
   |"failed"
   |"refunded"
+
+export type CreateOrderInput = OrderDTO & {
+  sessionId: Types.ObjectId;
+  restaurantId: Types.ObjectId;
+  table: number;
+};
