@@ -14,6 +14,7 @@ import {
 import { SessionDto } from './dto/session.dto';
 import { SessionService } from './session.service';
 import { Request, Response } from 'express';
+import { JoinSessionDto } from './dto/join.session.dto';
 
 @Controller('session')
 export class SessionController {
@@ -87,4 +88,30 @@ export class SessionController {
       },
     };
   }
+
+  
+@Post('join')
+async joinSession(
+  @Body() body: JoinSessionDto,
+  @Res({ passthrough: true }) response: Response,
+) {
+  const { session, token } = await this.sessionService.joinSession(
+    body.sessionId,
+  );
+
+  const { _id, restaurantId, table, status } = session;
+
+  response.cookie('dining_session', token, {
+    httpOnly: true,
+  });
+
+  return {
+    message: 'Successfully joined dining session',
+    sessionId: _id,
+    restaurantId,
+    table,
+    status,
+  };
+}
+
 }

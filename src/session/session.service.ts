@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable prettier/prettier */
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Session } from './schema/session.schema';
 import { Model } from 'mongoose';
@@ -96,4 +96,45 @@ export class SessionService {
 
     return session;
   }
+
+  
+async joinSession(sessionId: string) {
+  // Find the existing dining session
+  const session = await this.sessionModel.findById(sessionId);
+
+  if (!session) {
+    throw new NotFoundException('Dining session not found');
+  }
+
+  // Ensure the session is still active
+  if (session.status !== 'active') {
+    throw new ConflictException('This dining session is no longer active');
+  }
+
+  if (session.expiresAt && session.expiresAt <= new Date()) {
+    throw new ConflictException('This dining session has expired');
+  }
+
+  // Generate a new device token
+  const token = randomBytes(32).toString('hex');
+
+  // Hash the token before storing it
+  const hashedToken = createHash('sha256')
+    .update(token)
+    .digest('hex');
+
+  // Create a new device linked to the existing session
+  await this.sessionDeviceModel.create({
+    sessionId: session._id,
+    hashedToken,
+  });
+
+  // Return the session and raw token to the controller.
+  // The controller will put the token in an HTTP-only cookie.
+  return {
+    session,
+    token,
+  };
+}
+
 }
