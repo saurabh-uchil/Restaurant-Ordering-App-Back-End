@@ -37,4 +37,11 @@ export class RestaurantController {
         return data;
     }
 
+    @Get('/stats/:restaurantId')
+    async getRestaurantStats(@Param('restaurantId') restaurantId: string){
+        const data = await this.restaurantService.getRestaurantStats(restaurantId);
+        return data;
+    }
+
+
 }

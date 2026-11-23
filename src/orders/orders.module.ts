@@ -20,5 +20,6 @@ import { SessionModule } from '../session/session.module';
   ],
   providers: [OrdersService, OrdersGateway],
   controllers: [OrdersController],
+  exports: [OrdersService],
 })
 export class OrdersModule {}

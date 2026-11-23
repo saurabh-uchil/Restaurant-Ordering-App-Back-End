@@ -33,8 +33,9 @@ export type PaymentStatus =
   |"failed"
   |"refunded"
 
-export type CreateOrderInput = OrderDTO & {
+export type CreateOrderInput = {
   sessionId: Types.ObjectId;
   restaurantId: Types.ObjectId;
   table: number;
+  items: OrderDTO["items"];
 };

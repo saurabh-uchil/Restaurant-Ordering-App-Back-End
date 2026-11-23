@@ -5,6 +5,8 @@ import { FoodItem } from '../menu/food-items/schema/FoodItem.schema';
 import { Model } from 'mongoose';
 import { Restaurant } from './schema/restaurant.schema';
 import { Types } from "mongoose";
+import { Order } from '../orders/schema/orders.schema';
+import { OrdersService } from '../orders/orders.service';
 
 @Injectable()
 export class RestaurantService {
@@ -13,7 +15,13 @@ export class RestaurantService {
         private foodItemModel: Model<FoodItem>,
 
         @InjectModel(Restaurant.name)
-        private restaurantModel: Model<Restaurant>
+        private restaurantModel: Model<Restaurant>,
+
+        @InjectModel(Order.name)
+        private orderModel: Model<Order>,
+
+        private readonly orderService: OrdersService
+        
     ){}
 
     async getMenu(restaurant_Id: string){
@@ -45,5 +53,16 @@ export class RestaurantService {
         const menu = await this.getMenu(restaurantId)
 
         return menu;
+    }
+
+
+    async getRestaurantStats(restaurantId: string){
+        const totalMenuItems = await this.foodItemModel.find({ restaurant_Id: restaurantId });
+        
+        const totalOrders = await this.orderModel.countDocuments({ restaurantId: restaurantId, date: { $gte: new Date(new Date().setHours(0, 0, 0, 0)) } });
+        
+        const activeOrders = await this.orderService.getActiveOrdersByRestaurantId(restaurantId);
+        return { totalOrders, totalMenuItems: totalMenuItems.length, activeOrders: activeOrders.length };
+
     }
 }
