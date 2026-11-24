@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable prettier/prettier */
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
@@ -57,12 +58,13 @@ export class RestaurantService {
 
 
     async getRestaurantStats(restaurantId: string){
-        const totalMenuItems = await this.foodItemModel.find({ restaurant_Id: restaurantId });
-        
+        const restaurantObjectId = new Types.ObjectId(restaurantId);
+        const totalMenuItems = await this.foodItemModel.findById({_id:restaurantObjectId});
+        console.log(totalMenuItems);
         const totalOrders = await this.orderModel.countDocuments({ restaurantId: restaurantId, date: { $gte: new Date(new Date().setHours(0, 0, 0, 0)) } });
-        
+        console.log(totalOrders);
         const activeOrders = await this.orderService.getActiveOrdersByRestaurantId(restaurantId);
-        return { totalOrders, totalMenuItems: totalMenuItems.length, activeOrders: activeOrders.length };
+        return { activeOrders: activeOrders.length };
 
     }
 }
