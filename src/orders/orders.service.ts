@@ -148,4 +148,16 @@ export class OrdersService {
       .sort({ createdAt: -1 })
       .exec();
   }
+  
+  async getTotalOrdersTodayByRestaurantId(restaurantId: string) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    return this.orderModel.countDocuments({
+      restaurantId: new Types.ObjectId(restaurantId),
+      createdAt: { $gte: today, $lt: tomorrow },
+    });
+  }
 }
